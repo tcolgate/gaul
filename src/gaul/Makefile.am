@@ -1,0 +1,3 @@
+SUBDIRS=apps
+
+EXTRA_DIST=

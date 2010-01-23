@@ -1,0 +1,3 @@
+SUBDIRS=src unit-tests
+
+EXTRA_DIST=COPYING README

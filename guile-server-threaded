@@ -1,0 +1,70 @@
+(use-modules (oop goops))
+(use-modules (ice-9 threads))
+(use-modules (gaul callback-object))
+(use-modules (gaul wall-clock))
+(use-modules (ice-9 readline))
+(activate-readline)
+
+(define server-port 20003) 
+(define (server-report action conn p)
+  (display (strftime "%y%m%d %H:%M:%S: " (localtime (current-time))) p)
+  (display action p)
+  (display " connection from " p)
+  (display (inet-ntoa (vector-ref conn 1)) p)
+  (display " at port " p)
+  (display (vector-ref conn 2) p)
+  (newline p))
+
+(define (server)
+  (let ((o (current-output-port))
+        (port (socket AF_INET SOCK_STREAM 0)))
+    (bind port AF_INET INADDR_ANY server-port)
+    (listen port 10); Queue up to 10 requests.
+    (let loop ()
+      (select (list port) '() '())
+      (let ((p (accept port)))
+        (begin-thread
+          (server-report "Opening" (cdr p) o)
+          (server-repl (car p))
+          (server-report "Closing" (cdr p) o)
+          (close-port (car p))))
+      (loop))))
+
+(define (server-repl p)
+  (set-current-input-port p)
+  (set-current-output-port p)
+  (set-current-error-port p)
+  (top-repl))
+
+; Create a universal clock
+(define clock (make <gaul:wall-clock>))
+
+; Create an IP server thread for manually faffery
+(define server-thread (make-thread server))
+
+; If DISPLAY is set, create a thread for running the GTK+ mainloop
+(define DISPLAY (getenv "DISPLAY"))
+(define gtk-async-list (list))
+(if (not (eq? DISPLAY #f))
+  (begin 
+    (use-modules (gnome gtk))
+    (use-modules (gnome gtk graphical-repl))
+    (define gtk-thread 
+      (begin-thread 
+        (display "Starting GTK thread")(newline)
+	; Maybe need to move all of this into C space
+        (gdk-threads-init)
+        (gdk-threads-enter)
+        (gtk-main)
+        (gdk-threads-leave)))))
+
+(gdk-threads-enter)
+(define w (make <gtk-window> #:title "Guile-Gtk REPL"))
+(define repl (make <guile-gtk-repl>))
+(add w repl)
+(set-default-size w 600 400)
+(show-all w)
+(gdk-threads-leave)
+
+(top-repl)
+
