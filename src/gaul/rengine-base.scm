@@ -17,7 +17,18 @@
 ;    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ; ----------------------------------------------------------------------
 ;
-(use-modules (oop goops))
+(define-module (gaul rengine-base)
+  #:use-module (oop goops)
+  #:duplicates merge-generics
+  #:export ( <engine-base> description render-begin render-end render-frame
+camera attribute-begin attribute-end transform-begin transform-end solid-begin
+solid-end motion-blur-begin motion-blur-end motion-blur object-begin object-end
+translate scale skew rotate transform concat-transform projection deformation
+light-source area-light-source illuminate color opacity surface imager
+atmosphere exterior interior displacement basis trim-curve identifier cone
+cylinder disk hyperboloid paraboloid sphere torus polygon points-polygons
+general-polygon points-general-polygons patch patch-mesh nu-patch
+subdivision-mesh curves points object-instance))
 
 (define-class <engine-base> ())
 
@@ -80,6 +91,8 @@
 (define-generic patch)
 (define-generic patch-mesh)
 (define-generic nu-patch)
+(define-generic subdivision-mesh)
 (define-generic curves)
 (define-generic points)
 (define-generic object-instance)
+

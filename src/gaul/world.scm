@@ -16,3 +16,30 @@
 ;    along with this program; if not, write to the Free Software
 ;    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ; ----------------------------------------------------------------------
+
+
+(define-module (gaul world)
+  #:use-module (oop goops)
+  #:use-module (gaul callback-object)
+  #:use-module (gaul wall-clock)
+  #:export (<gaul:world> worldclock display-world)
+  #:export-syntax (world))
+
+(define *global-clock* (make <gaul:wall-clock>))
+
+(define-class <gaul:world> (<gaul:callback-object>)
+  (worldclock #:init-value *global-clock* #:init-keyword #:clock #:accessor worldclock)
+  (dirty #:init-value #f)
+  (worldfunc #:init-value (lambda()(format #t "If a tree falls in an empty world, does it make a sound?~%"))))
+
+(define-generic display-world)
+(define-method (display-world (self <gaul:world>))
+  (format #f "not done~%"))
+
+(define-method (initialize (self <gaul:world>) initargs)
+  (next-method)
+  (add-callback (slot-ref self 'worldclock) 
+                'value-changed 
+                (lambda()(display-world self))))
+  
+
