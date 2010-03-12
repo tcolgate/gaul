@@ -29,20 +29,21 @@
      #:duplicates merge-generics)
 
 (define-class <gaul:callback-object> ()
-	      (class-name #:init-value "<gaul:callback-object>")
-	      (callbacks #:init-value '()))
+	      (callbacks #:init-value '() #:accessor callbacks))
 
+(define-generic add-callback)
 (define-method (add-callback (self <gaul:callback-object>) 
 			     (name <symbol>) 
 			     call)
-  (slot-set! self 'callbacks 
-    (cons (cons name call) (slot-ref self 'callbacks))))
+  (set! (callbacks self)
+    (cons (cons name call) (callbacks self))))
 
+(define-generic remove-callback)
 (define-method (remove-callback (self <gaul:callback-object>) 
 				(name <symbol>)
 				call)
-  (slot-set! self 'callbacks 
-    (remove (lambda(x)(equal? (cons name call) x)) (slot-ref self 'callbacks)))) 
+  (set! (callbacks self)
+    (remove (lambda(x)(equal? (cons name call) x)) (callbacks self)))) 
 
 (define-generic call-callbacks)
 
@@ -52,7 +53,7 @@
 	  (call (cdr cb)))
       (if (eq? name cbname)
 	         (call))))
-  (for-each (lambda(cb)(call cb)) (slot-ref self 'callbacks)))
+  (for-each (lambda(cb)(call cb)) (callbacks self)))
 
 (define-method (call-callbacks (self <gaul:callback-object>) name arg)
   (define (call cb)
@@ -60,6 +61,6 @@
 	  (proc (cdr cb)))
       (if (eq? name cbname)
 	         (proc arg))))
-  (for-each (lambda(cb)(call cb)) (slot-ref self 'callbacks)))
+  (for-each (lambda(cb)(call cb)) (callbacks self)))
 
 (export <gaul:callback-object> add-callback remove-callback call-callbacks)

@@ -21,8 +21,8 @@
 (define-module (gaul wall-clock)
 	#:use-module (oop goops)
 	#:use-module (gaul callback-object)
-	#:duplicates merge-generics)
-
+	#:duplicates merge-generics
+        #:export (<gaul:wall-clock> time time-nocallbacks))
 
 ;  These classes repesent a wall clock. External source are used to drive
 ;  and update the clock. 
@@ -31,14 +31,12 @@
 ;  	'update: Called whenever the time is changed
 
 (define-class <gaul:wall-clock> (<gaul:callback-object>)
-	      (class-name #:init-value "gaul:wall-clock")
-	      (currtime #:init-value 0))
+  (currtime #:init-value 0 #:accessor time-nocallbacks)
+  (time #:allocation #:virtual 
+        #:accessor time
+        #:slot-ref (lambda (self) (time-nocallbacks self))
+        #:slot-set! (lambda (self val)
+                      (set! (time-nocallbacks self) val)
+                      (call-callbacks self 'update))))
 
-(define-method (set-time! (self <gaul:wall-clock>) 
-			  (val <integer>)
-			  (donotifies <boolean>))
-  (slot-set! self 'currtime val)
-  (call-callbacks self 'update))
-
-(export <gaul:wall-clock> set-time!)
 
