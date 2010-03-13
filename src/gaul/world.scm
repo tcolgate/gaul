@@ -22,7 +22,8 @@
   #:use-module (gaul logging)
   #:use-module (gaul callback-object)
   #:use-module (gaul wall-clock)
-  #:export (<gaul:world> worldclock display-world)
+  #:export (<gaul:world> world:clock world:dirty world:func 
+            display-world *global-world* *global-clock*)
   #:export-syntax (world))
 
 (define *global-clock* (make <gaul:wall-clock>))
@@ -36,18 +37,38 @@
 ; 		'world-post-eval	: Call after execution
 
 (define-class <gaul:world> (<gaul:callback-object>)
-  (worldclock #:init-value *global-clock* 
-              #:init-keyword #:clock 
-              #:accessor worldclock)
-  (dirty #:init-value #f)
-  (worldfunc #:init-value (lambda()(output "If a tree falls in an empty world, does it make a sound?~%"))))
+  (world:clock #:init-value *global-clock* 
+               #:init-keyword #:clock 
+               #:accessor world:clock)
+  (world:dirty #:init-value #f
+               #:init-keyword #:dirty
+               #:accessor world:dirty)
+  (world:p:func #:init-value (lambda()(output "If a tree falls in an empty world, does it make a sound?~%")))
+  (world:func #:allocation #:virtual
+              #:slot-ref (lambda(self)(slot-ref self 'world:p:func))
+              #:slot-set! (lambda(self arg)
+                            (slot-set! self 'world:p:func arg)
+                            (slot-set! self 'world:dirty #t)
+                            (display-world self))
+              #:accessor world:func))
 
 (define-method (initialize (self <gaul:world>) initargs)
   (next-method)
-  (add-callback (slot-ref self 'worldclock) 
+  (add-callback (slot-ref self 'world:clock) 
                 'value-changed 
                 (lambda()(display-world self))))
+
+(define *global-world* (make <gaul:world>))
 
 (define-generic display-world)
 (define-method (display-world (self <gaul:world>))
   (debug "not done~%"))
+
+(define-syntax world
+  (syntax-rules ()
+    ((_ forms ...) (set! (world:func *global-world*)
+                      (lambda() 
+                         (call-callbacks *global-world* 'world-pre-eval)
+                         forms ... 
+                         (call-callbacks *global-world* 'world-post-eval))))))
+
