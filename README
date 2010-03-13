@@ -1,3 +1,8 @@
- GAUL
- ----
+ Guile Animation Utility Language
+ ---------------------------------
+
+  GAUL is a language, and utilities, for computer generated
+animation. It is based on Steve May's Animation Language, and
+built on top of GNU Guile.
+
 
