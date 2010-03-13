@@ -1,5 +1,5 @@
 ; ----------------------------------------------------------------------
-;    clock.scm
+;    logging.scm
 ;    Copyright (C) 2008 Tristan Colgate-McFarlane
 ;
 ;    This program is free software; you can redistribute it and/or modify
@@ -16,27 +16,24 @@
 ;    along with this program; if not, write to the Free Software
 ;    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ; ----------------------------------------------------------------------
+
+(define-module (gaul logging)
+  #:use-module (oop goops)
+  #:use-module (ice-9 format)
+  #:export (*debug-level*)
+  #:export-syntax (debug output))
+
+; some trivial logging routines for now.
 ;
+(define *debug-level* 1)
 
-(define-module (gaul wall-clock)
-	#:use-module (oop goops)
-	#:use-module (gaul callback-object)
-	#:duplicates merge-generics
-        #:export (<gaul:wall-clock> time time-nocallbacks))
+(define-syntax debug
+  (syntax-rules ()
+   ((_ str ) (format (current-error-port) str))
+   ((_ str args) (format (current-error-port) str args))))
 
-;  These classes repesent a wall clock. External source are used to drive
-;  and update the clock. 
-;
-;  Callbacks:
-;  	'value-changed: Called whenever the time is changed
-
-(define-class <gaul:wall-clock> (<gaul:callback-object>)
-  (currtime #:init-value 0 #:accessor time-nocallbacks)
-  (time #:allocation #:virtual 
-        #:accessor time
-        #:slot-ref (lambda (self) (time-nocallbacks self))
-        #:slot-set! (lambda (self val)
-                      (set! (time-nocallbacks self) val)
-                      (call-callbacks self 'value-changed))))
-
+(define-syntax output
+  (syntax-rules ()
+   ((_ str ) (format (current-output-port) str))
+   ((_ str args) (format (current-output-port) str args))))
 

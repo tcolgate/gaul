@@ -17,9 +17,9 @@
 ;    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ; ----------------------------------------------------------------------
 
-
 (define-module (gaul world)
   #:use-module (oop goops)
+  #:use-module (gaul logging)
   #:use-module (gaul callback-object)
   #:use-module (gaul wall-clock)
   #:export (<gaul:world> worldclock display-world)
@@ -27,19 +27,27 @@
 
 (define *global-clock* (make <gaul:wall-clock>))
 
-(define-class <gaul:world> (<gaul:callback-object>)
-  (worldclock #:init-value *global-clock* #:init-keyword #:clock #:accessor worldclock)
-  (dirty #:init-value #f)
-  (worldfunc #:init-value (lambda()(format #t "If a tree falls in an empty world, does it make a sound?~%"))))
+; These classes encapsulate a world.
+;
+; Callbacks:
+; 		'world-pre-compile	: Called before compile
+; 		'world-post-compile	: Called after copmilation
+; 		'world-pre-eval		: Called before execution
+; 		'world-post-eval	: Call after execution
 
-(define-generic display-world)
-(define-method (display-world (self <gaul:world>))
-  (format #f "not done~%"))
+(define-class <gaul:world> (<gaul:callback-object>)
+  (worldclock #:init-value *global-clock* 
+              #:init-keyword #:clock 
+              #:accessor worldclock)
+  (dirty #:init-value #f)
+  (worldfunc #:init-value (lambda()(output "If a tree falls in an empty world, does it make a sound?~%"))))
 
 (define-method (initialize (self <gaul:world>) initargs)
   (next-method)
   (add-callback (slot-ref self 'worldclock) 
                 'value-changed 
                 (lambda()(display-world self))))
-  
 
+(define-generic display-world)
+(define-method (display-world (self <gaul:world>))
+  (debug "not done~%"))
