@@ -21,13 +21,18 @@
   #:use-module (oop goops)
   #:use-module (ice-9 format)
   #:export (*debug-level*)
-  #:export-syntax (debug output))
+  #:export-syntax (debug error output))
 
 ; some trivial logging routines for now.
 ;
 (define *debug-level* 1)
 
 (define-syntax debug
+  (syntax-rules ()
+   ((_ str ) (format (current-error-port) str))
+   ((_ str args) (format (current-error-port) str args))))
+
+(define-syntax error
   (syntax-rules ()
    ((_ str ) (format (current-error-port) str))
    ((_ str args) (format (current-error-port) str args))))
